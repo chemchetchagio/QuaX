@@ -1,10 +1,8 @@
-# Project Archive Notice
 
-**⚠️ This project is archived and no longer maintained.**
 
-Due to lack of interest and time constraints, this repository will not receive any further updates or support. The code and documentation are preserved for historical reference only.
+# 🚨 Notice: future for the app
 
-Thank you for your understanding.
+**I have taken note of TheHCJ’s decision to archive the main Quacker repository. Since I did not receive a response to my request to become a maintainer of Quacker, I will maintain the project here or on another repository. I will keep you updated via this Readme. In the meantime, you can download a more stable version of Quacker in the “releases” section.**
 
 ---
 
