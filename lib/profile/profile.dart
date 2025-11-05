@@ -12,7 +12,6 @@ import 'package:quax/profile/_tweets.dart';
 import 'package:quax/profile/profile_model.dart';
 import 'package:quax/search/search.dart';
 import 'package:quax/ui/errors.dart';
-import 'package:quax/ui/physics.dart';
 import 'package:quax/user.dart';
 import 'package:quax/utils/urls.dart';
 import 'package:intl/intl.dart';
@@ -599,7 +598,6 @@ class _ProfileScreenBodyState extends State<ProfileScreenBody> with TickerProvid
             ],
             child: TabBarView(
               controller: _tabController,
-              physics: const LessSensitiveScrollPhysics(),
               children: [
                 ProfileTweets(
                     user: user,
