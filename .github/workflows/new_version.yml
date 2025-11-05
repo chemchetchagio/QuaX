@@ -1,0 +1,58 @@
+name: New version
+
+on:
+  workflow_dispatch:
+    inputs:
+      major:
+        description: "Major version number"
+        required: true
+        type: string
+      minor:
+        description: "Minor version number"
+        required: true
+        type: string
+      patch:
+        description: "Patch version number"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write   # needed to dispatch other workflows
+
+jobs:
+  bump-version:
+    name: Bump pubspec version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.patch }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update version in pubspec.yaml
+        run: |
+          echo "Updating pubspec.yaml to version: $VERSION"
+          if grep -q '^version:' pubspec.yaml; then
+            sed -i "s/^version:.*/version: $VERSION+1/" pubspec.yaml
+          else
+            echo "version: $VERSION" >> pubspec.yaml
+          fi
+          grep '^version:' pubspec.yaml
+
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "Bumping to version $VERSION"
+          git tag "v$VERSION"
+          git push origin HEAD:master
+          git push origin "v$VERSION"
