@@ -172,6 +172,16 @@ class SettingsGeneralFragment extends StatelessWidget {
             title: Text(L10n.of(context).mute_videos),
             subtitle: Text(L10n.of(context).mute_video_description),
           ),
+          PrefSwitch(
+            pref: optionMediaDefaultLoop,
+            title: Text(L10n.of(context).loop_videos),
+            subtitle: Text(L10n.of(context).loop_videos_description),
+          ),
+          PrefSwitch(
+            pref: optionMediaDefaultAutoPlay,
+            title: Text(L10n.of(context).autoplay_videos),
+            subtitle: Text(L10n.of(context).autoplay_videos_description),
+          ),
           PrefCheckbox(
             title: Text(L10n.of(context).hide_sensitive_tweets),
             subtitle: Text(L10n.of(context).whether_to_hide_tweets_marked_as_sensitive),

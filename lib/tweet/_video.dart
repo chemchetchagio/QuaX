@@ -2,6 +2,7 @@ import 'package:chewie/chewie.dart';
 import 'package:dart_twitter_api/twitter_api.dart';
 import 'package:flutter/material.dart';
 import 'package:pref/pref.dart';
+import 'package:quax/constants.dart';
 import 'package:quax/generated/l10n.dart';
 import 'package:quax/tweet/_video_controls.dart';
 import 'package:quax/utils/downloads.dart';
@@ -72,7 +73,7 @@ class _TweetVideoState extends State<TweetVideo> {
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
 
-  Future<void> _restartVideo() async {
+  Future<void> _restartVideo(bool prefLoop, bool prefAutoPlay) async {
     try {
       await _chewieController?.pause();
     } catch (_) {}
@@ -85,7 +86,7 @@ class _TweetVideoState extends State<TweetVideo> {
     });
 
     try {
-      await _loadVideo();
+      await _loadVideo(prefLoop, prefAutoPlay);
       if (mounted) {
         setState(() {});
       }
@@ -94,7 +95,7 @@ class _TweetVideoState extends State<TweetVideo> {
     }
   }
 
-  Future<void> _loadVideo() async {
+  Future<void> _loadVideo(bool prefLoop, bool prefAutoPlay) async {
     var urls = await widget.metadata.streamUrlsBuilder();
     var streamUrl = urls.streamUrl;
     var downloadUrl = urls.downloadUrl;
@@ -113,7 +114,7 @@ class _TweetVideoState extends State<TweetVideo> {
     _chewieController = ChewieController(
       aspectRatio: widget.metadata.aspectRatio,
       autoInitialize: true,
-      autoPlay: widget.alwaysPlay,
+      autoPlay: widget.alwaysPlay || prefAutoPlay,
       allowMuting: !widget.disableControls,
       showControls: !widget.disableControls,
       allowedScreenSleep: false,
@@ -154,7 +155,7 @@ class _TweetVideoState extends State<TweetVideo> {
           title: L10n.of(context).download,
         )
       ],
-      looping: widget.loop,
+      looping: widget.loop || prefLoop,
       videoPlayerController: _videoController!,
       errorBuilder: (context, errorMessage) {
         return Center(
@@ -185,8 +186,11 @@ class _TweetVideoState extends State<TweetVideo> {
   @override
   @override
   Widget build(BuildContext context) {
+    final prefs = PrefService.of(context);
+    final prefLoop = prefs.get(optionMediaDefaultLoop);
+    final prefAutoPlay = prefs.get(optionMediaDefaultAutoPlay);
     return FutureBuilder(
-      future: _chewieController == null ? _loadVideo() : Future.value(),
+      future: _chewieController == null ? _loadVideo(prefLoop, prefAutoPlay) : Future.value(),
       builder: (context, snapshot) {
         final hasError = snapshot.hasError;
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -206,7 +210,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 const Text('Failed to load video'),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: _restartVideo,
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay),
                   child: const Text('Restart Video Player'),
                 ),
               ],
@@ -227,7 +231,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 bottom: 8,
                 child: IconButton(
                   icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: _restartVideo,
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay),
                   tooltip: 'Restart player',
                 ),
               ),

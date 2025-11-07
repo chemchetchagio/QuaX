@@ -195,6 +195,8 @@ Future<void> main() async {
     optionHomeInitialTab: 'feed',
     optionMediaSize: 'medium',
     optionMediaDefaultMute: true,
+    optionMediaDefaultLoop: false,
+    optionMediaDefaultAutoPlay: false,
     optionNonConfirmationBiasMode: false,
     optionShouldCheckForUpdates: const String.fromEnvironment('app.flavor') == "fdroid" ? false : true,
     optionSubscriptionGroupsOrderByAscending: true,

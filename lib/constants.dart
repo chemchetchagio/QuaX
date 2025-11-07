@@ -13,6 +13,8 @@ const optionHomeInitialTab = 'home.initial_tab';
 
 const optionMediaSize = 'media.size';
 const optionMediaDefaultMute = 'media.mute';
+const optionMediaDefaultLoop = 'media.loop';
+const optionMediaDefaultAutoPlay = 'media.auto_play';
 
 const optionDownloadType = 'download.type';
 const optionDownloadPath = 'download.path';

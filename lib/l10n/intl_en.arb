@@ -441,5 +441,9 @@
   "quax_doesnt_work_without_account_please_login": "QuaX doesn't work without an X account, please login to continue using the app.\n\nX doesn't allow accessing their APIs without an account.",
   "dismiss": "Dismiss",
   "view_on_github": "View on GitHub",
-  "view_version_on_github": "View version {version} on GitHub"
+  "view_version_on_github": "View version {version} on GitHub",
+  "loop_videos": "Loop videos",
+  "loop_videos_description": "If enabled, videos will loop after completing",
+  "autoplay_videos": "Autoplay videos",
+  "autoplay_videos_description": "If enabled, videos will start playing without user interaction"
 }
