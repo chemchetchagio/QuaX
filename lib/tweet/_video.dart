@@ -72,8 +72,10 @@ class TweetVideo extends StatefulWidget {
 class _TweetVideoState extends State<TweetVideo> {
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
+  bool? _autoPlay;
+  final GlobalKey<MaterialControlsState> _controllerKey = GlobalKey();
 
-  Future<void> _restartVideo(bool prefLoop, prefAutoPlay, prefBackgroundPlayback) async {
+  Future<void> _restartVideo(bool prefLoop, prefAutoPlay, prefBackgroundPlayback, prefMixWithOthers) async {
     try {
       await _chewieController?.pause();
     } catch (_) {}
@@ -86,7 +88,7 @@ class _TweetVideoState extends State<TweetVideo> {
     });
 
     try {
-      await _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback);
+      await _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback, prefMixWithOthers);
       if (mounted) {
         setState(() {});
       }
@@ -95,14 +97,14 @@ class _TweetVideoState extends State<TweetVideo> {
     }
   }
 
-  Future<void> _loadVideo(bool prefLoop, bool prefAutoPlay, bool prefBackgroundPlayback) async {
+  Future<void> _loadVideo(bool prefLoop, bool prefAutoPlay, bool prefBackgroundPlayback, bool prefMixWithOthers) async {
     var urls = await widget.metadata.streamUrlsBuilder();
     var streamUrl = urls.streamUrl;
     var downloadUrl = urls.downloadUrl;
 
     _videoController = VideoPlayerController.networkUrl(Uri.parse(streamUrl),
         videoPlayerOptions:
-            VideoPlayerOptions(mixWithOthers: widget.disableControls, allowBackgroundPlayback: prefBackgroundPlayback));
+            VideoPlayerOptions(mixWithOthers: widget.disableControls || prefMixWithOthers, allowBackgroundPlayback: prefBackgroundPlayback));
 
     var model = context.read<VideoContextState>();
     var volume = model.isMuted ? 0.0 : _videoController!.value.volume;
@@ -112,14 +114,16 @@ class _TweetVideoState extends State<TweetVideo> {
       model.setIsMuted(_videoController!.value.volume);
     });
 
+    _autoPlay = prefAutoPlay;
+
     _chewieController = ChewieController(
       aspectRatio: widget.metadata.aspectRatio,
       autoInitialize: true,
-      autoPlay: widget.alwaysPlay || prefAutoPlay,
+      autoPlay: widget.alwaysPlay,
       allowMuting: !widget.disableControls,
       showControls: !widget.disableControls,
       allowedScreenSleep: false,
-      customControls: const FritterMaterialControls(),
+      customControls: FritterMaterialControls(key: _controllerKey),
       additionalOptions: (context) => [
         OptionItem(
           onTap: (BuildContext _) async {
@@ -190,8 +194,9 @@ class _TweetVideoState extends State<TweetVideo> {
     final prefLoop = prefs.get(optionMediaDefaultLoop);
     final prefAutoPlay = prefs.get(optionMediaDefaultAutoPlay);
     final prefBackgroundPlayback = prefs.get(optionMediaBackgroundPlayback);
+    final prefMixWithOthers = prefs.get(optionMediaAllowBackgroundPlayOtherApps);
     return FutureBuilder(
-      future: _chewieController == null ? _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback) : Future.value(),
+      future: _chewieController == null ? _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback, prefMixWithOthers) : Future.value(),
       builder: (context, snapshot) {
         final hasError = snapshot.hasError;
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -211,7 +216,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 const Text('Failed to load video'),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback),
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback, prefMixWithOthers),
                   child: const Text('Restart Video Player'),
                 ),
               ],
@@ -229,12 +234,12 @@ class _TweetVideoState extends State<TweetVideo> {
                       key: UniqueKey(),
                       onVisibilityChanged: (info) {
                         if (mounted) {
-                          if (info.visibleFraction == 0.0 && !_chewieController!.isFullScreen) {
-                            if (widget.alwaysPlay) {
-                              _chewieController?.setVolume(0.0);
-                            } else {
-                              _chewieController?.pause();
-                            }
+                          if (!widget.alwaysPlay && info.visibleFraction <= 0.5 && !_chewieController!.isFullScreen) {
+                            _chewieController?.pause();
+                          }
+                          if (info.visibleFraction >= 0.75 && _autoPlay! && !_chewieController!.isPlaying) {
+                            _chewieController!.play();
+                            _controllerKey.currentState?.notifier.hideStuff = true;
                           }
                         }
                       },
@@ -249,7 +254,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 bottom: 8,
                 child: IconButton(
                   icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback),
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback, prefMixWithOthers),
                   tooltip: 'Restart player',
                 ),
               ),

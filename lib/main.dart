@@ -202,6 +202,7 @@ Future<void> main() async {
     optionMediaDefaultLoop: false,
     optionMediaDefaultAutoPlay: false,
     optionMediaBackgroundPlayback: true,
+    optionMediaAllowBackgroundPlayOtherApps: false,
     optionNonConfirmationBiasMode: false,
     optionShouldCheckForUpdates: const String.fromEnvironment('app.flavor') == "fdroid" ? false : true,
     optionSubscriptionGroupsOrderByAscending: true,

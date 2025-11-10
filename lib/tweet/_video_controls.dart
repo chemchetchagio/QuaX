@@ -17,7 +17,7 @@ import 'package:quax/generated/l10n.dart';
 // This class is mostly taken directly from Chewie, which is released under the MIT License
 // https://github.com/fluttercommunity/chewie/blob/0d997f8ded29ae2151a6935668d8654a6deb8fa6/lib/src/material/material_controls.dart
 class FritterMaterialControls extends StatefulWidget {
-  const FritterMaterialControls({
+  FritterMaterialControls({
     this.showPlayButton = true,
     super.key,
   });
@@ -26,11 +26,11 @@ class FritterMaterialControls extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _MaterialControlsState();
+    return MaterialControlsState();
   }
 }
 
-class _MaterialControlsState extends State<FritterMaterialControls> with SingleTickerProviderStateMixin {
+class MaterialControlsState extends State<FritterMaterialControls> with SingleTickerProviderStateMixin {
   late PlayerNotifier notifier;
   late VideoPlayerValue _latestValue;
   double? _latestVolume;
