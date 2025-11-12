@@ -30,7 +30,7 @@ class TwitterHeaders {
     final path = uri.path;
     final prefs = await PrefServiceShared.init(prefix: 'pref_');
     final xClientTransactionIdDomain = prefs.get(optionXClientTransactionIdProvider) ?? optionXClientTransactionIdProviderDefaultDomain;
-    final xClientTransactionUriEndPoint = Uri.http(xClientTransactionIdDomain, '/generate-x-client-transaction-id', {'path': path});
+    final xClientTransactionUriEndPoint = Uri.https(xClientTransactionIdDomain, '/generate-x-client-transaction-id', {'path': path});
 
     try {
       final response = await http.get(xClientTransactionUriEndPoint);
