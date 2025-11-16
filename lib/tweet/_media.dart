@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:dart_twitter_api/twitter_api.dart';
@@ -137,11 +138,8 @@ class _TweetMediaState extends State<TweetMedia> {
 
   @override
   Widget build(BuildContext context) {
-    var largestAspectRatio = 1.0;
-    final aspectRatios = widget.media.map((e) => ((e.sizes!.large!.w) ?? 1) / ((e.sizes!.large!.h) ?? 1)).toSet();
-    if (aspectRatios.length == 1) {
-      largestAspectRatio = aspectRatios.first;
-    }
+    var largestAspectRatio =
+    widget.media.map((e) => ((e.sizes!.large!.w) ?? 1) / ((e.sizes!.large!.h) ?? 1)).reduce(math.min);
 
     return Consumer<TweetContextState>(builder: (context, model, child) {
       if (model.hideSensitive && (widget.sensitive ?? false)) {
