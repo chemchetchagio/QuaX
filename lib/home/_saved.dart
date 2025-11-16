@@ -8,7 +8,6 @@ import 'package:quax/client/client.dart';
 import 'package:quax/constants.dart';
 import 'package:quax/database/entities.dart';
 import 'package:quax/generated/l10n.dart';
-import 'package:quax/home/home_screen.dart';
 import 'package:quax/profile/profile.dart';
 import 'package:quax/saved/saved_tweet_model.dart';
 import 'package:quax/tweet/tweet.dart';

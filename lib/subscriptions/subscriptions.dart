@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quax/generated/l10n.dart';
 import 'package:quax/group/group_model.dart';
-import 'package:quax/home/home_screen.dart';
 import 'package:quax/subscriptions/_groups.dart';
 import 'package:quax/subscriptions/_import.dart';
 import 'package:quax/subscriptions/_list.dart';

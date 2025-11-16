@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quax/constants.dart';
 import 'package:quax/generated/l10n.dart';
-import 'package:quax/home/home_screen.dart';
 import 'package:quax/ui/errors.dart';
 
 class MissingScreen extends StatelessWidget {

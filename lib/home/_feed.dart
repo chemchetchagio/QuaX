@@ -50,7 +50,6 @@ class _FeedScreenState extends State<FeedScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final BasePrefService prefs = PrefService.of(context);
-    final bool disableAnimations = prefs.get(optionDisableAnimations) == true;
 
     return Provider<GroupModel>(create: (context) {
       var model = GroupModel(widget.id);

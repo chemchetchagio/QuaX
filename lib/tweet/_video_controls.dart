@@ -17,7 +17,7 @@ import 'package:quax/generated/l10n.dart';
 // This class is mostly taken directly from Chewie, which is released under the MIT License
 // https://github.com/fluttercommunity/chewie/blob/0d997f8ded29ae2151a6935668d8654a6deb8fa6/lib/src/material/material_controls.dart
 class FritterMaterialControls extends StatefulWidget {
-  FritterMaterialControls({
+  const FritterMaterialControls({
     this.showPlayButton = true,
     super.key,
   });

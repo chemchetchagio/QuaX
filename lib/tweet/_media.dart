@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:async_button_builder/async_button_builder.dart';
 import 'package:dart_twitter_api/twitter_api.dart';
