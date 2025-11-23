@@ -207,6 +207,7 @@ Future<void> main() async {
     optionNonConfirmationBiasMode: false,
     optionShouldCheckForUpdates: const String.fromEnvironment('app.flavor') == "fdroid" ? false : true,
     optionSubscriptionGroupsOrderByAscending: true,
+    optionDisableWarningsForUnrelatedPostsInFeed: false,
     optionSubscriptionGroupsOrderByField: 'name',
     optionSubscriptionOrderByAscending: true,
     optionSubscriptionOrderByField: 'name',

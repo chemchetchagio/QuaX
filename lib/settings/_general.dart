@@ -224,6 +224,11 @@ class SettingsGeneralFragment extends StatelessWidget {
             subtitle: Text(L10n.of(context).x_client_transaction_id_provider_description),
             dialog: _createXClientTransactionIdDialog(context, prefs),
           ),
+          PrefSwitch(
+            title: Text(L10n.of(context).disable_warnings_for_unrelated_posts_in_feed),
+            subtitle: Text(L10n.of(context).disable_warnings_for_unrelated_posts_in_feed_description),
+            pref: optionDisableWarningsForUnrelatedPostsInFeed,
+          ),
         ]),
       ),
     );

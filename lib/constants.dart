@@ -31,6 +31,8 @@ const optionShouldCheckForUpdates = 'should_check_for_updates';
 const optionConfirmClose = 'confirm_close';
 const optionShareBaseUrl = 'share_base_url';
 
+const optionDisableWarningsForUnrelatedPostsInFeed = 'disable_warnings_for_unrelated_posts_in_feed';
+
 const optionSubscriptionGroupsOrderByAscending = 'subscription_groups.order_by.ascending';
 const optionSubscriptionGroupsOrderByField = 'subscription_groups.order_by.field';
 const optionSubscriptionOrderByAscending = 'subscription.order_by.ascending';
@@ -62,7 +64,6 @@ const optionNonConfirmationBiasMode = 'other.improve_non_confirmation_bias';
 const String optionXClientTransactionIdProviderDefaultDomain = 'x-client-transaction-id-generator.xyz';
 
 const String optionXClientTransactionIdProvider = 'x_client_transaction_id_provider';
-
 
 final Map<String, String> userAgentHeader = {
   'user-agent':
