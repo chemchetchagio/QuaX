@@ -36,6 +36,7 @@ const optionDisableWarningsForUnrelatedPostsInFeed = 'disable_warnings_for_unrel
 const optionSubscriptionGroupsOrderByAscending = 'subscription_groups.order_by.ascending';
 const optionSubscriptionGroupsOrderByField = 'subscription_groups.order_by.field';
 const optionSubscriptionOrderByAscending = 'subscription.order_by.ascending';
+const optionSubscriptionOrderCustom = 'subscription.order_by.custom';
 const optionSubscriptionOrderByField = 'subscription.order_by.field';
 
 const optionThemeMode = 'theme.mode';

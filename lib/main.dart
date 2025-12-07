@@ -211,6 +211,7 @@ Future<void> main() async {
     optionSubscriptionGroupsOrderByField: 'name',
     optionSubscriptionOrderByAscending: true,
     optionSubscriptionOrderByField: 'name',
+    optionSubscriptionOrderCustom: '',
     optionThemeMode: 'system',
     optionThemeColor: 'accent',
     optionThemeTrueBlack: true,
