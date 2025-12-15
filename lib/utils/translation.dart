@@ -93,7 +93,12 @@ class TranslationAPI {
   static Future<TranslationAPIResult> parseResponse(http.Response response, String errorUnableTo) async {
     final utf8Response = utf8.decode(response.bodyBytes);
     final body = jsonDecode(utf8Response);
-    if (response.statusCode == 200) {
+    log.info("Translation result: $body");
+    if (response.statusCode == 200 && body is Map<String, dynamic>) {
+      if (body.containsKey("error")){
+        var error = body['error'];
+        return TranslationAPIResult(success: false, body: body, errorMessage: error['message'] ?? error['code'] ?? '');
+      }
       return TranslationAPIResult(success: true, body: body);
     }
 
