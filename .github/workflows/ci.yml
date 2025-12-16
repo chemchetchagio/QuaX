@@ -41,13 +41,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
+      - name: Generate icons
+        run: |
+          python -mvenv .venv
+          source ./.venv/bin/activate
+          pip install -r requirements.txt
+          python generate_icons.py
+          deactivate
+
       - name: Build
         run: |
           flutter clean
           flutter config --no-analytics
           flutter pub get
-          flutter pub run flutter_oss_licenses:generate.dart
-          flutter pub run intl_utils:generate
+          dart run flutter_launcher_icons
+          dart run dart_pubspec_licenses:generate
+          dart run intl_utils:generate
           dart run flutter_iconpicker:generate_packs --packs material
 
           # Create a directory for our release APKs

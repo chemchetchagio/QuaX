@@ -38,6 +38,7 @@
 
 
 lib/generated
+lib/oss_licenses.dart
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -52,3 +53,5 @@ app.*.map.json
 .fvm/
 
 .gradle/
+.venv/
+assets/icon-*.png
