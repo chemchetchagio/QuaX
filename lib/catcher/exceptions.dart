@@ -22,4 +22,4 @@ class ManuallyReportedException {
   ManuallyReportedException(this.exception);
 }
 
-class SyntheticException {}
+mixin SyntheticException {}
