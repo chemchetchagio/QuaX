@@ -1,7 +1,7 @@
-## QuaX v4.2.8
+## QuaX v4.3.0
 
-What's new in QuaX v4.2.8:
-  - Added the possibility to view and save user profile picture and banner (fixed #94) <sup>[[view modified code]](https://github.com/teskann/quax/commit/f4f5fcd58f2fdaaff19bde182436e44ba5b0293d)</sup>
+What's new in QuaX v4.3.0:
+  - Added support of community notes (#114) <sup>[[view modified code]](https://github.com/teskann/quax/commit/769b2bc850c4d166df3ecfcca3d7027f5bffbfa5)</sup>
 
 
 APK Certificate fingerprints:

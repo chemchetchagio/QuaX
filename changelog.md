@@ -1,3 +1,8 @@
+## QuaX v4.3.0
+
+What's new in QuaX v4.3.0:
+  - Added support of community notes (#114) <sup>[[view modified code]](https://github.com/teskann/quax/commit/769b2bc850c4d166df3ecfcca3d7027f5bffbfa5)</sup>
+
 ## QuaX v4.2.8
 
 What's new in QuaX v4.2.8:
