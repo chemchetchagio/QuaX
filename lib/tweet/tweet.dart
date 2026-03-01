@@ -33,6 +33,7 @@ class TweetTile extends StatefulWidget {
 
   final bool tweetOpened;
   final bool addSeparator;
+  final bool isBirdwatchQuote;
 
   const TweetTile(
       {super.key,
@@ -43,7 +44,8 @@ class TweetTile extends StatefulWidget {
       this.isThread = false,
       this.tweetOpened = false,
       this.addSeparator = true,
-      this.isQuotedTweet = false});
+      this.isQuotedTweet = false,
+      this.isBirdwatchQuote = false});
 
   @override
   TweetTileState createState() => TweetTileState();
@@ -59,6 +61,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
   late final bool isThread;
   late final bool isQuotedTweet;
   late final bool addSeparator;
+  late final bool isBirdwatchQuote;
 
   TranslationStatus _translationStatus = TranslationStatus.original;
 
@@ -79,6 +82,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     isThread = widget.isThread;
     isQuotedTweet = widget.isQuotedTweet;
     addSeparator = widget.addSeparator;
+    isBirdwatchQuote = widget.isBirdwatchQuote;
   }
 
   @override
@@ -279,6 +283,69 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
       return Text(L10n.of(context).the_tweet_did_not_contain_any_text_this_is_unexpected);
     }
 
+    if (isBirdwatchQuote) {
+      return Card(
+          child: Container(
+            // Fill the width so both RTL and LTR text are displayed correctly
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(bottom: 0, left: 24, right: 16, top: 0),
+                      child: RichText(
+                        text: TextSpan(children: [
+                          WidgetSpan(
+                              child: Icon(Icons.group_rounded, size: 16, color: Theme
+                                  .of(context)
+                                  .hintColor),
+                              alignment: PlaceholderAlignment.middle
+                          ),
+                          const WidgetSpan(child: SizedBox(width: 16)),
+                          TextSpan(
+                            text: L10n
+                                .of(context)
+                                .community_notes_header,
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.titleSmall?.color),
+                          )
+                        ]),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    AutoDirection(
+                        text: tweetText,
+                        child: SelectableText.rich(
+                          TextSpan(children: [
+                            ..._displayParts.map((e) {
+                              if (e.plainText != null) {
+                                return TextSpan(text: e.plainText);
+                              }
+                              else {
+                                return e.entity!;
+                              }
+                            })
+                          ]),
+                        )
+                    ),
+                  ]
+              )
+          )
+      );
+    }
+
+    var birdwatchQuoted = Container();
+    if (tweet.birdwatchQuotedStatus != null) {
+      birdwatchQuoted = Container(
+        margin: const EdgeInsets.all(8),
+        child: TweetTile(
+          clickable: false,
+          tweet: tweet.birdwatchQuotedStatus!,
+          isBirdwatchQuote: true,
+        ),
+      );
+    }
+
     var quotedTweet = Container();
 
     // don't display a nested quoted tweet if we are already building a quoted tweet
@@ -467,6 +534,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                         media,
                         quotedTweet,
                         TweetCard(tweet: tweet, card: tweet.card),
+                        birdwatchQuoted,
                         Container(
                           alignment: Alignment.center,
                           margin: const EdgeInsets.symmetric(horizontal: 8),
