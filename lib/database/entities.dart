@@ -33,6 +33,7 @@ abstract class Subscription with ToMappable {
   final String? profileImageUrlHttps;
   final bool verified;
   final DateTime createdAt;
+  final bool inFeed;
 
   Subscription(
       {required this.id,
@@ -40,12 +41,14 @@ abstract class Subscription with ToMappable {
       required this.name,
       required this.profileImageUrlHttps,
       required this.verified,
-      required this.createdAt});
+      required this.createdAt,
+      required this.inFeed,
+      });
 }
 
 class SearchSubscription extends Subscription {
   SearchSubscription({required super.id, required super.createdAt})
-      : super(name: id, screenName: id, verified: false, profileImageUrlHttps: null);
+      : super(name: id, screenName: id, verified: false, profileImageUrlHttps: null, inFeed: true);
 
   factory SearchSubscription.fromMap(Map<String, Object?> map) {
     return SearchSubscription(id: map['id'] as String, createdAt: DateTime.parse(map['created_at'] as String));
@@ -72,11 +75,14 @@ class UserSubscription extends Subscription {
       required super.name,
       required super.profileImageUrlHttps,
       required super.verified,
-      required super.createdAt});
+      required super.createdAt,
+      required super.inFeed
+      });
 
   factory UserSubscription.fromMap(Map<String, Object?> map) {
     var verified = map['verified'] is int;
     var createdAt = map['created_at'] == null ? DateTime.now() : DateTime.parse(map['created_at'] as String);
+    var inFeed = map['in_feed'] is int;
 
     return UserSubscription(
         id: map['id'] as String,
@@ -84,7 +90,9 @@ class UserSubscription extends Subscription {
         name: map['name'] as String,
         profileImageUrlHttps: map['profile_image_url_https'] as String?,
         verified: verified ? map['verified'] == 1 : false,
-        createdAt: createdAt);
+        createdAt: createdAt,
+        inFeed: inFeed ? map['in_feed'] == 1 : false
+    );
   }
 
   factory UserSubscription.fromUser(UserWithExtra user) {
@@ -94,7 +102,9 @@ class UserSubscription extends Subscription {
         name: user.name!,
         profileImageUrlHttps: user.profileImageUrlHttps,
         verified: user.verified!,
-        createdAt: user.createdAt!);
+        createdAt: user.createdAt!,
+        inFeed: true
+    );
   }
 
   @override
@@ -112,7 +122,8 @@ class UserSubscription extends Subscription {
       'name': name,
       'profile_image_url_https': profileImageUrlHttps,
       'verified': verified ? 1 : 0,
-      'created_at': sqliteDateFormat.format(createdAt)
+      'created_at': sqliteDateFormat.format(createdAt),
+      'in_feed': inFeed ? 1 : 0,
     };
   }
 

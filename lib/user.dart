@@ -158,8 +158,11 @@ class FollowButton extends StatelessWidget {
       store: model,
       onState: (_, state) {
         var followed = state.any((element) => element.id == user.id);
+        var inFeed = followed ? state.any((element) => element.id == user.id && element.inFeed) : false;
 
-        var icon = followed ? Icon(Icons.person_remove, color: color) : Icon(Icons.person_add, color: color);
+        var icon = followed
+            ? (inFeed ? Icon(Icons.person_remove, color: color) : Icon(Icons.visibility_off))
+            : Icon(Icons.person_add, color: color);
         var text = followed ? L10n.of(context).unsubscribe : L10n.of(context).subscribe;
 
         return PopupMenuButton<String>(
@@ -170,6 +173,11 @@ class FollowButton extends StatelessWidget {
               value: 'add_to_group',
               child: Text(L10n.of(context).add_to_group),
             ),
+            if (followed)
+              PopupMenuItem(
+                value: 'toggle_in_main_feed',
+                child: Text(inFeed ? L10n.of(context).hide_from_main_feed : L10n.of(context).show_in_main_feed),
+              ),
           ],
           onSelected: (value) async {
             switch (value) {
@@ -187,6 +195,9 @@ class FollowButton extends StatelessWidget {
                 break;
               case 'toggle_subscribe':
                 await model.toggleSubscribe(user, followed);
+                break;
+              case 'toggle_in_main_feed':
+                await model.toggleInFeed(user, inFeed);
                 break;
             }
           },

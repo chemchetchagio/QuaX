@@ -232,10 +232,13 @@ class Repository {
         SqlMigration('INSERT INTO $tableAccounts (id, auth_header) SELECT id, auth_header FROM ${tableAccounts}_old'),
         SqlMigration('DROP TABLE ${tableAccounts}_old'),
       ],
+      23: [
+        SqlMigration('ALTER TABLE $tableSubscription ADD COLUMN in_feed BOOLEAN DEFAULT 1'),
+      ]
     });
     await openDatabase(
       databaseName,
-      version: 22,
+      version: 23,
       onUpgrade: myMigrationPlan.call,
       onCreate: myMigrationPlan.call,
       onDowngrade: myMigrationPlan.call,
