@@ -48,7 +48,7 @@ dependencies:
   flutter_file_dialog: ^3.0.1
   flutter_iconpicker: ^4.0.1
   flutter_portal: ^1.1.4
-  webview_flutter: ^4.13.0
+  webview_flutter: 4.13.0
   webview_cookie_manager_plus: ^2.0.16
   video_player: ^2.4.9
 
