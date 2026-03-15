@@ -517,8 +517,8 @@ class _DefaultPageState extends State<DefaultPage> {
   StackTrace? _migrationStackTrace;
   StreamSubscription<Uri>? _sub;
 
-  void handleInitialLink(Uri link) {
-    final parsed = parseUri(link);
+  void handleInitialLink(Uri link) async {
+    final parsed = await parseUri(link);
     switch (parsed) {
       case ProfileUriInfo(screenName: final screenName, profileTabIndex: final tab):
         Navigator.pushNamed(context, routeProfile,
@@ -545,8 +545,13 @@ class _DefaultPageState extends State<DefaultPage> {
                   onPressed:  () => openUri('https://github.com/teskann/quax/issues'),
                 ),
                 TextButton(
-                  child: Text(L10n.of(context).close),
-                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(L10n.of(context).open_in_browser),
+                  onPressed: () {
+                    openInDefaultBrowser(link.toString());
+                    if(context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
               ],
             );

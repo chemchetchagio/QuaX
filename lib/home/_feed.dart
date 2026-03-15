@@ -9,6 +9,7 @@ import 'package:quax/generated/l10n.dart';
 import 'package:quax/group/_settings.dart';
 import 'package:quax/group/group_model.dart';
 import 'package:quax/group/group_screen.dart';
+import 'package:quax/subscriptions/users_model.dart';
 
 class FeedScreen extends StatefulWidget {
   final ScrollController scrollController;
@@ -23,8 +24,10 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen>
     with AutomaticKeepAliveClientMixin<FeedScreen>, TickerProviderStateMixin {
+  bool _shouldKeepAlive = true;
+
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => _shouldKeepAlive;
 
   final PagingController<String?, TweetChain> _pagingController = PagingController(firstPageKey: null);
   late TabController _tabController;
@@ -50,6 +53,12 @@ class _FeedScreenState extends State<FeedScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final BasePrefService prefs = PrefService.of(context);
+    context.read<SubscriptionsModel>().onSubscriptionsReloaded['_FeedScreenState'] = () {
+      setState(() {
+        _shouldKeepAlive = false;
+      });
+      updateKeepAlive();
+    };
 
     return Provider<GroupModel>(create: (context) {
       var model = GroupModel(widget.id);

@@ -1,5 +1,21 @@
+import 'package:http/http.dart' as http;
 import 'package:quax/profile/profile.dart' show profileTabs;
 import 'package:url_launcher/url_launcher_string.dart';
+
+import 'package:flutter/services.dart';
+import 'package:android_intent_plus/android_intent.dart';
+
+const _channel = MethodChannel('browser_resolver');
+
+Future<void> openInDefaultBrowser(String url) async {
+  final packageName = await _channel.invokeMethod<String>('getDefaultBrowser');
+  final intent = AndroidIntent(
+    action: 'android.intent.action.VIEW',
+    data: url,
+    package: packageName,
+  );
+  await intent.launch();
+}
 
 Future<void> openUri(String uri) async {
   await launchUrlString(uri, mode: LaunchMode.externalApplication);
@@ -84,9 +100,29 @@ PostUriInfo? _parseAsPostLink(List<String> parts) {
   return null;
 }
 
+Future<String?> _resolveShortUrl(Uri shortUrl) async {
+  final request = http.Request('GET', shortUrl)
+    ..followRedirects = false;
+
+  final response = await request.send();
+  if (response.isRedirect || response.statusCode == 301 || response.statusCode == 302) {
+    return response.headers['location'];
+  }
+  return response.request?.url.toString();
+}
+
 class UnknownResult extends UriParseResult {}
 
-UriParseResult parseUri(Uri link) {
+Future<UriParseResult> parseUri(Uri link) async {
+  if (link.host == 't.co') {
+    String? lnk = await _resolveShortUrl(link);
+    if (lnk == null) return UnknownResult();
+    Uri parsed = Uri.parse(lnk);
+    if (parsed.host != 't.co') {
+      return parseUri(parsed);
+    }
+    return UnknownResult();
+  }
   link = link.replace(path: link.path.replaceAll(RegExp(r'/$'), ''));
   final parts = link.pathSegments;
 

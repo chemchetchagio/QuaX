@@ -15,7 +15,6 @@ import 'package:quax/utils/cache.dart';
 import 'package:quax/utils/iterables.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:quiver/iterables.dart';
 
 const Duration _defaultTimeout = Duration(seconds: 30);
 
@@ -216,8 +215,6 @@ class Twitter {
           break;
       }
     }
-
-    Logger.detached("").info(result);
 
     var user = UserWithExtra.fromJson(
         {...result['legacy'], 'id_str': result['rest_id'], 'ext_is_blue_verified': result['is_blue_verified']});
@@ -463,45 +460,60 @@ class Twitter {
   }
 
   static Future<TweetStatus> searchTweets(String query, bool includeReplies,
-      {int limit = 25, String? cursor, String product = "Latest"}) async {
+      {int limit = 20, String? cursor, String product = "Latest"}) async {
     var variables = {
       "rawQuery": query,
       "count": limit.toString(),
       "querySource": "typed_query",
       "product": product,
-      "withDownvotePerspective": false,
-      "withReactionsMetadata": false,
-      "withReactionsPerspective": false
+      "withGrokTranslatedBio": false,
     };
 
     var features = {
-      "responsive_web_graphql_exclude_directive_enabled": true,
-      "verified_phone_label_enabled": true,
-      "creator_subscriptions_tweet_preview_api_enabled": true,
-      "responsive_web_graphql_timeline_navigation_enabled": true,
-      "responsive_web_graphql_skip_user_profile_image_extensions_enabled": false,
-      "c9s_tweet_anatomy_moderator_badge_enabled": true,
-      "tweetypie_unmention_optimization_enabled": true,
-      "responsive_web_edit_tweet_api_enabled": true,
-      "graphql_is_translatable_rweb_tweet_is_translatable_enabled": true,
-      "view_counts_everywhere_api_enabled": true,
-      "longform_notetweets_consumption_enabled": true,
-      "responsive_web_twitter_article_tweet_consumption_enabled": true,
-      "tweet_awards_web_tipping_enabled": false,
-      "freedom_of_speech_not_reach_fetch_enabled": true,
-      "standardized_nudges_misinfo": true,
-      "tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled": true,
-      "rweb_video_timestamps_enabled": true,
-      "longform_notetweets_rich_text_read_enabled": true,
-      "longform_notetweets_inline_media_enabled": true,
-      "responsive_web_enhance_cards_enabled": false
+      "rweb_video_screen_enabled":false,
+      "profile_label_improvements_pcf_label_in_post_enabled":true,
+      "responsive_web_profile_redirect_enabled":false,
+      "rweb_tipjar_consumption_enabled":false,
+      "verified_phone_label_enabled":false,
+      "creator_subscriptions_tweet_preview_api_enabled":true,
+      "responsive_web_graphql_timeline_navigation_enabled":true,
+      "responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,
+      "premium_content_api_read_enabled":false,
+      "communities_web_enable_tweet_community_results_fetch":true,
+      "c9s_tweet_anatomy_moderator_badge_enabled":true,
+      "responsive_web_grok_analyze_button_fetch_trends_enabled":false,
+      "responsive_web_grok_analyze_post_followups_enabled":true,
+      "responsive_web_jetfuel_frame":true,
+      "responsive_web_grok_share_attachment_enabled":true,
+      "responsive_web_grok_annotations_enabled":true,
+      "articles_preview_enabled":true,
+      "responsive_web_edit_tweet_api_enabled":true,
+      "graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,
+      "view_counts_everywhere_api_enabled":true,
+      "longform_notetweets_consumption_enabled":true,
+      "responsive_web_twitter_article_tweet_consumption_enabled":true,
+      "tweet_awards_web_tipping_enabled":false,
+      "content_disclosure_indicator_enabled":true,
+      "content_disclosure_ai_generated_indicator_enabled":true,
+      "responsive_web_grok_show_grok_translated_post":false,
+      "responsive_web_grok_analysis_button_from_backend":true,
+      "post_ctas_fetch_enabled":true,
+      "freedom_of_speech_not_reach_fetch_enabled":true,
+      "standardized_nudges_misinfo":true,
+      "tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,
+      "longform_notetweets_rich_text_read_enabled":true,
+      "longform_notetweets_inline_media_enabled":true,
+      "responsive_web_grok_image_annotation_enabled":true,
+      "responsive_web_grok_imagine_annotation_enabled":true,
+      "responsive_web_grok_community_note_auto_translation_is_enabled":false,
+      "responsive_web_enhance_cards_enabled":false
     };
 
     if (cursor != null) {
       variables['cursor'] = cursor;
     }
 
-    var uri = Uri.https('twitter.com', '/i/api/graphql/flaR-PUMshxFWZWPNpq4zA/SearchTimeline',
+    var uri = Uri.https('x.com', '/i/api/graphql/9AW3D-T7t9Vkvfdmq2L-iQ/SearchTimeline',
         {'variables': jsonEncode(variables), 'features': jsonEncode(features)});
 
     var response = await _twitterApi.client.get(uri);
@@ -977,29 +989,6 @@ class Twitter {
     return TweetStatus(chains: chains, cursorBottom: cursorBottom, cursorTop: cursorTop);
   }
 
-  static Future<List<UserWithExtra>> getUsers(Iterable<String> ids) async {
-    // Split into groups of 100, as the API only supports that many at a time
-    List<Future<List<UserWithExtra>>> futures = [];
-
-    var groups = partition(ids, 100);
-    for (var group in groups) {
-      futures.add(_getUsersPage(group));
-    }
-
-    return (await Future.wait(futures)).expand((element) => element).toList();
-  }
-
-  static Future<List<UserWithExtra>> _getUsersPage(Iterable<String> ids) async {
-    final uri = Uri.https('api.x.com', '/2/users', {
-      'user_id': ids.join(','),
-    });
-    var response = await _twitterApi.client.get(uri, headers: await TwitterHeaders.getHeaders(uri));
-
-    var result = json.decode(response.body);
-
-    return List.from(result).map((e) => UserWithExtra.fromJson(e)).toList(growable: false);
-  }
-
   static Map<String, TweetWithCard> _createTweetsGraphql(
       String entryPrefix, List<dynamic> allTweets, bool includeReplies) {
     bool includeTweet(dynamic t) {
@@ -1016,12 +1005,7 @@ class Twitter {
         return false;
       }
 
-      if (includeReplies) {
-        return true;
-      }
-
-      // TODO
-      return t['in_reply_to_status_id'] == null || t['in_reply_to_user_id'] == null;
+      return true;
     }
 
     var filteredTweets = allTweets.where(includeTweet);
@@ -1042,6 +1026,14 @@ class Twitter {
       rethrow;
     }
 
+    // include replies only if we should
+    tweets = tweets.where((tweet) {
+      if (!includeReplies && (tweet.inReplyToStatusIdStr != null || tweet.inReplyToUserIdStr != null)) {
+        return false;
+      }
+      return true;
+    }).toList();
+
     return {for (var e in tweets) e.idStr: e};
   }
 
@@ -1060,6 +1052,7 @@ class TweetWithCard extends Tweet {
   TweetWithCard? quotedStatusWithCard;
   TweetWithCard? retweetedStatusWithCard;
   bool? isTombstone;
+  TweetWithCard? birdwatchQuotedStatus;  // Community notes
 
   TweetWithCard();
 
@@ -1140,10 +1133,13 @@ class TweetWithCard extends Tweet {
       retweetedStatus = TweetWithCard.fromGraphqlJson(result['legacy']['retweeted_status_result']['result']!);
     }
 
-    if (result['quoted_status_result'] != null &&
-        result['quoted_status_result']['result'] != null &&
-        result['quoted_status_result']['result']?['__typename'] != 'TweetWithVisibilityResults') {
-      quotedStatus = TweetWithCard.fromGraphqlJson(result['quoted_status_result']['result']!);
+    if (result['quoted_status_result'] != null && result['quoted_status_result']['result'] != null){
+      // tweets that limit who can reply (TweetWithVisibilityResults) are wrapped in another layer
+      var quotedTweetResult =
+        result['quoted_status_result']['result']?['__typename'] == 'TweetWithVisibilityResults'
+        ? result['quoted_status_result']['result']['tweet']
+        : result['quoted_status_result']['result'];
+      quotedStatus = TweetWithCard.fromGraphqlJson(quotedTweetResult);
     }
 
     var resCore = result['core']?['user_results']?['result'];
@@ -1184,9 +1180,36 @@ class TweetWithCard extends Tweet {
         tweet.card!['binding_values'] = bindingValues;
       }
     }
+    if (result['birdwatch_pivot']?['subtitle'] != null) {
+      var birdwatchSubtitle = TweetWithCard.rearrangeBirdwatch(result['birdwatch_pivot']['subtitle']);
+      tweet.birdwatchQuotedStatus = TweetWithCard.fromJson(birdwatchSubtitle);
+    }
 
     return tweet;
   }
+
+  static Map<String, dynamic> rearrangeBirdwatch(Map<String, dynamic> birdwatch) {
+    Map<String, dynamic> newBirdwatch = {};
+    String text = birdwatch['text'];
+    newBirdwatch['text'] = text;
+    newBirdwatch['display_text_range'] = [0, text.length - 1];
+    var entities = birdwatch['entities'];
+    newBirdwatch['entities'] = { "urls": []};
+    for (final entity in entities) {
+      int fromIndex = entity['fromIndex'];
+      int toIndex = entity['toIndex'];
+      String displayedUrl = text.substring(fromIndex, toIndex);
+      String url = entity['ref']['url'];
+      newBirdwatch['entities']["urls"].add({
+        'display_url': displayedUrl,
+        'expanded_url': url,
+        'url': url,
+        'indices': [fromIndex, toIndex]
+      });
+    }
+    return newBirdwatch;
+  }
+
 
   factory TweetWithCard.fromCardJson(Map<String, dynamic> tweets, Map<String, dynamic> users, Map<String, dynamic> e) {
     var user = e['user_id_str'] == null ? null : UserWithExtra.fromJson(users[e['user_id_str']]);

@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'dart:io' show Platform;
 import 'package:auto_direction/auto_direction.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:quax/client/client.dart';
 import 'package:quax/constants.dart';
 import 'package:quax/generated/l10n.dart';
@@ -29,9 +32,11 @@ class TweetTile extends StatefulWidget {
   final TweetWithCard tweet;
   final bool isPinned;
   final bool isThread;
+  final bool isQuotedTweet;
 
   final bool tweetOpened;
   final bool addSeparator;
+  final bool isBirdwatchQuote;
 
   const TweetTile(
       {super.key,
@@ -41,7 +46,9 @@ class TweetTile extends StatefulWidget {
       this.isPinned = false,
       this.isThread = false,
       this.tweetOpened = false,
-      this.addSeparator = true});
+      this.addSeparator = true,
+      this.isQuotedTweet = false,
+      this.isBirdwatchQuote = false});
 
   @override
   TweetTileState createState() => TweetTileState();
@@ -55,7 +62,9 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
   late final TweetWithCard tweet;
   late final bool isPinned;
   late final bool isThread;
+  late final bool isQuotedTweet;
   late final bool addSeparator;
+  late final bool isBirdwatchQuote;
 
   TranslationStatus _translationStatus = TranslationStatus.original;
 
@@ -64,6 +73,8 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
   List<RichTextPart> _translatedParts = [];
 
   bool _isInitialized = false;
+
+  final GlobalKey _globalKey = GlobalKey(); // needed for "share tweet as image"
 
   @override
   void initState() {
@@ -74,7 +85,9 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     tweet = widget.tweet;
     isPinned = widget.isPinned;
     isThread = widget.isThread;
+    isQuotedTweet = widget.isQuotedTweet;
     addSeparator = widget.addSeparator;
+    isBirdwatchQuote = widget.isBirdwatchQuote;
   }
 
   @override
@@ -92,7 +105,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     var actualTweet = tweet.retweetedStatusWithCard ?? tweet;
     // get the longest tweet between legacy (still used most of the time) and noteText (mostly ny premium users?)
     var tweetTextFinal = actualTweet.noteText ?? actualTweet.fullText ?? actualTweet.text!;
-    var entitiesFinal = actualTweet.noteEntities ?? actualTweet.entities!;
+    var entitiesFinal = actualTweet.noteEntities ?? actualTweet.entities;
 
     List<RichTextPart> tweetParts = buildRichText(context, tweetTextFinal, entitiesFinal);
     setState(() {
@@ -184,6 +197,33 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     return newHsl.toColor();
   }
 
+  Widget _buildErrorTweet(String text) {
+    // create the layout of tombstones (deleted tweets) and other possible errors that we want to display as a tweet
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Text(text, style: const TextStyle(fontStyle: FontStyle.italic))),
+      ),
+    );
+  }
+
+  Future<Uint8List?> captureWidget() async {
+    if (_globalKey.currentContext == null) {
+      return null;
+    }
+    final RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      return null;
+    }
+    final Uint8List pngBytes = byteData.buffer.asUint8List();
+
+    return pngBytes;
+  }
+
   @override
   Widget build(BuildContext context) {
     final prefs = PrefService.of(context, listen: false);
@@ -195,21 +235,15 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     TweetWithCard tweet = this.tweet.retweetedStatusWithCard == null ? this.tweet : this.tweet.retweetedStatusWithCard!;
 
     // If the user is on a profile, all the shown tweets are from that profile, so it makes no sense to hide it
-    final isTweetOnSameProfile = currentUsername != null && currentUsername == tweet.user!.screenName;
+    final isTweetOnSameProfile =
+        currentUsername != null && tweet.user != null && currentUsername == tweet.user!.screenName;
     final hideAuthorInformation = !isTweetOnSameProfile && prefs.get(optionNonConfirmationBiasMode);
 
     var numberFormat = NumberFormat.compact();
     var theme = Theme.of(context);
 
     if (tweet.isTombstone ?? false) {
-      return SizedBox(
-        width: double.infinity,
-        child: Card(
-          child: Container(
-              padding: const EdgeInsets.all(16),
-              child: Text(tweet.text!, style: const TextStyle(fontStyle: FontStyle.italic))),
-        ),
-      );
+      return _buildErrorTweet(tweet.text!);
     }
 
     Widget media = Container();
@@ -269,23 +303,103 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
       return Text(L10n.of(context).the_tweet_did_not_contain_any_text_this_is_unexpected);
     }
 
+    if (isBirdwatchQuote) {
+      return Card(
+          child: Container(
+            // Fill the width so both RTL and LTR text are displayed correctly
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(bottom: 0, left: 24, right: 16, top: 0),
+                      child: RichText(
+                        text: TextSpan(children: [
+                          WidgetSpan(
+                              child: Icon(Icons.group_rounded, size: 16, color: Theme
+                                  .of(context)
+                                  .hintColor),
+                              alignment: PlaceholderAlignment.middle
+                          ),
+                          const WidgetSpan(child: SizedBox(width: 16)),
+                          TextSpan(
+                            text: L10n
+                                .of(context)
+                                .community_notes_header,
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.titleSmall?.color),
+                          )
+                        ]),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    AutoDirection(
+                        text: tweetText,
+                        child: SelectableText.rich(
+                          TextSpan(children: [
+                            ..._displayParts.map((e) {
+                              if (e.plainText != null) {
+                                return TextSpan(text: e.plainText);
+                              }
+                              else {
+                                return e.entity!;
+                              }
+                            })
+                          ]),
+                        )
+                    ),
+                  ]
+              )
+          )
+      );
+    }
+
+    var birdwatchQuoted = Container();
+    if (tweet.birdwatchQuotedStatus != null) {
+      birdwatchQuoted = Container(
+        margin: const EdgeInsets.all(8),
+        child: TweetTile(
+          clickable: false,
+          tweet: tweet.birdwatchQuotedStatus!,
+          isBirdwatchQuote: true,
+        ),
+      );
+    }
+
     var quotedTweet = Container();
 
-    if (tweet.isQuoteStatus ?? false) {
+    // don't display a nested quoted tweet if we are already building a quoted tweet
+    if (!isQuotedTweet && (tweet.isQuoteStatus ?? false)) {
+      Widget quotedContent;
       if (tweet.quotedStatusWithCard != null) {
-        quotedTweet = Container(
-          decoration: BoxDecoration(
-              border: Border.all(color: theme.colorScheme.surfaceBright.withAlpha(180)),
-              borderRadius: BorderRadius.circular(8)),
-          margin: const EdgeInsets.all(8),
-          child: TweetTile(
+        // if we got the full tweet in the reply
+        quotedContent = TweetTile(
             clickable: true,
             tweet: tweet.quotedStatusWithCard!,
             currentUsername: currentUsername,
             addSeparator: false,
-          ),
+            isQuotedTweet: true,
+          );
+      } else if (tweet.quotedStatusIdStr != null) {
+        // If twitter did not gave us the full tweet for some reason, we show a clickable tile to the tweet
+        // There always seem to be an actual link to the quoted tweet that we can display (showing username + id)
+        String? msg = tweet.quotedStatusPermalink?.display ?? 'View quoted tweet'; // Just in case, add a default String
+        quotedContent = GestureDetector(
+            onTap: () => Navigator.pushNamed(context, routeStatus,
+                arguments: StatusScreenArguments(id: tweet.quotedStatusIdStr!, username: null)),
+            child: _buildErrorTweet(msg)
         );
+      } else {
+        // If we have a quote tweet we should at least have quotedStatusIdStr, but just in case twitter is being weird
+        quotedContent = _buildErrorTweet('Could not retrieve quoted tweet');
       }
+      quotedTweet = Container(
+        decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.surfaceBright.withAlpha(180)),
+        borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(8),
+        child: quotedContent,
+      );
     }
 
     // Only create the tweet content if the tweet contains text
@@ -351,8 +465,8 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     }
 
     return Consumer<ImportDataModel>(
-        builder: (context, model, child) => Column(children: [
-              Card(
+        builder: (context, model, child) => RepaintBoundary(key: _globalKey, child: Column(children: [
+            Card(
                 color: theme.brightness == Brightness.dark &&
                         prefs.get(optionThemeTrueBlack) &&
                         prefs.get(optionThemeTrueBlackTweetCards)
@@ -440,6 +554,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                         media,
                         quotedTweet,
                         TweetCard(tweet: tweet, card: tweet.card),
+                        birdwatchQuoted,
                         Container(
                           alignment: Alignment.center,
                           margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -498,45 +613,32 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                                                 child: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Consumer<SavedTweetModel>(builder: (context, model, child) {
-                                                  var isSaved = model.isSaved(tweet.idStr!);
-                                                  if (isSaved) {
-                                                    return createSheetButton(
-                                                      L10n.of(context).unsave,
-                                                      Icons.bookmark_border,
-                                                      () async {
-                                                        await model.deleteSavedTweet(tweet.idStr!);
-                                                        Navigator.pop(context);
-                                                      },
-                                                    );
-                                                  } else {
-                                                    return createSheetButton(
-                                                        L10n.of(context).save, Icons.bookmark_border, () async {
-                                                      await model.saveTweet(
-                                                          tweet.idStr!, tweet.user?.idStr, tweet.toJson());
-                                                      Navigator.pop(context);
-                                                    });
-                                                  }
-                                                }),
                                                 createSheetButton(
                                                   L10n.of(context).share_tweet_content,
-                                                  Icons.share,
-                                                  () async {
+                                                  Icons.text_snippet,
+                                                      () async {
                                                     Share.share(tweetText);
                                                     Navigator.pop(context);
                                                   },
                                                 ),
-                                                createSheetButton(L10n.of(context).share_tweet_link, Icons.share,
+                                                createSheetButton(L10n.of(context).share_tweet_link, Icons.link,
                                                     () async {
                                                   Share.share(
                                                       '$shareBaseUrl/${tweet.user!.screenName}/status/${tweet.idStr}');
                                                   Navigator.pop(context);
                                                 }),
                                                 createSheetButton(
-                                                    L10n.of(context).share_tweet_content_and_link, Icons.share,
-                                                    () async {
-                                                  Share.share(
-                                                      '$tweetText\n\n$shareBaseUrl/${tweet.user!.screenName}/status/${tweet.idStr}');
+                                                    L10n.of(context).share_tweet_content_and_link, Icons.add_link,
+                                                        () async {
+                                                      Share.share(
+                                                          '$tweetText\n\n$shareBaseUrl/${tweet.user!.screenName}/status/${tweet.idStr}');
+                                                      Navigator.pop(context);
+                                                    }),
+                                                createSheetButton(L10n.of(context).share_tweet_as_image, Icons.screenshot, () async {
+                                                  Uint8List? imgBytes = await captureWidget();
+                                                  if (imgBytes != null) {
+                                                    Share.shareXFiles([XFile.fromData(imgBytes, mimeType: 'image/png')]);
+                                                  }
                                                   Navigator.pop(context);
                                                 }),
                                                 const Padding(
@@ -571,7 +673,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                 thickness: 1,
                 color: addSeparator ? theme.colorScheme.surfaceBright.withAlpha(150) : Colors.transparent,
               ),
-            ]));
+            ])));
   }
 }
 

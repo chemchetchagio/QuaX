@@ -247,7 +247,7 @@
   "@name": {},
   "pick_a_color": "Choisissez une couleur !",
   "@pick_a_color": {},
-  "import_subscriptions": "Importer des abonnements",
+  "import_subscriptions": "Importer les abonnements",
   "@import_subscriptions": {},
   "toggle_all": "Tout basculer",
   "@toggle_all": {},
@@ -540,5 +540,13 @@
   "default_profile_tab": "Onglet par défaut des profils",
   "default_profile_tab_description": "Onglet actif à l'ouverture d'un profil",
   "unable_to_open_link": "Impossible d'ouvrir le lien",
-  "unable_to_open_link_details": "QuaX n'a pas été en mesure d'ouvrir le lien sur lequel vous avez cliqué. Soit lien est invalide, soit il s'agit d'une erreur qui devrait être signalée."
+  "unable_to_open_link_details": "QuaX n'a pas été en mesure d'ouvrir le lien sur lequel vous avez cliqué. Soit lien est invalide, soit il s'agit d'une erreur qui devrait être signalée.",
+  "import_subscriptions_text": "Les abonnements sont gérés en local sur QuaX. Ils sont totalement indépendants de ceux de votre vrai compte X. Se connecter n'affecte pas vos abonnements dans QuaX.\n\nVoulez-vous importer les abonnements de @{screenName} dans QuaX ?",
+  "logging_in_quax": "La connexion dans QuaX",
+  "logging_in_quax_information": "Le compte avec lequel vous êtes connecté ne change pas votre expérience. Les abonnements, groupes et posts enregistrés sont locaux à l’application et n’affectent pas votre compte réel. L’authentification est nécessaire pour récupérer des données depuis X, et ne permet pas la prise en charge des interactions avec les publications (like, repost, …).\n\nVous pouvez vous connecter avec plusieurs comptes : dans ce cas, QuaX en choisira un au hasard pour chaque requête effectuée vers x.com (recherche, affichage d’un profil, affichage du fil, …). Cela peut aider à réduire les erreurs type « Too many requests ».",
+  "open_in_browser": "Ouvrir dans un navigateur",
+  "community_notes_header": "Contexte ajouté par les utilisateurs",
+  "share_tweet_as_image": "Partager le tweet en tant qu'image",
+  "show_in_main_feed": "Afficher dans le fil principal",
+  "hide_from_main_feed": "Masquer du fil principal"
 }

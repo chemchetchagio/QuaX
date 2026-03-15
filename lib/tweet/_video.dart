@@ -22,7 +22,7 @@ class TweetVideoUrls {
 
 class TweetVideoMetadata {
   final double aspectRatio;
-  final String imageUrl;
+  final String? imageUrl;
   final Future<TweetVideoUrls> Function() streamUrlsBuilder;
 
   TweetVideoMetadata(this.aspectRatio, this.imageUrl, this.streamUrlsBuilder);

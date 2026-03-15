@@ -64,7 +64,9 @@ class _SubscriptionImportScreenState extends State<SubscriptionImportScreen> {
                 profileImageUrlHttps: e.profileImageUrlHttps,
                 screenName: e.screenName!,
                 verified: e.verified ?? false,
-                createdAt: createdAt))
+                createdAt: createdAt,
+                inFeed: true
+            ))
           ]
         });
 
@@ -77,7 +79,6 @@ class _SubscriptionImportScreenState extends State<SubscriptionImportScreen> {
 
       await groupModel.reloadGroups();
       await context.read<SubscriptionsModel>().reloadSubscriptions();
-      await context.read<SubscriptionsModel>().refreshSubscriptionData();
       _streamController?.close();
     } catch (e, stackTrace) {
       _streamController?.addError(e, stackTrace);

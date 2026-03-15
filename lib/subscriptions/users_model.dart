@@ -1,5 +1,6 @@
+import 'dart:ui';
+
 import 'package:flutter_triple/flutter_triple.dart';
-import 'package:quax/client/client.dart';
 import 'package:quax/constants.dart';
 import 'package:quax/database/entities.dart';
 import 'package:quax/database/repository.dart';
@@ -13,6 +14,7 @@ class SubscriptionsModel extends Store<List<Subscription>> {
 
   final BasePrefService prefs;
   final GroupsModel groupModel;
+  Map<String, VoidCallback> onSubscriptionsReloaded = {};
 
   SubscriptionsModel(this.prefs, this.groupModel) : super([]);
 
@@ -64,37 +66,9 @@ class SubscriptionsModel extends Store<List<Subscription>> {
         return newLst;
       }
     });
-  }
-
-  Future<void> refreshSubscriptionData() async {
-    log.info('Refreshing subscription data');
-
-    await execute(() async {
-      var database = await Repository.writable();
-
-      var ids = (await database.query(tableSubscription, columns: ['id'])).map((e) => e['id'] as String).toList();
-
-      var users = await Twitter.getUsers(ids);
-
-      var batch = database.batch();
-      for (var user in users) {
-        batch.update(
-            tableSubscription,
-            {
-              'screen_name': user.screenName,
-              'name': user.name,
-              'profile_image_url_https': user.profileImageUrlHttps,
-              'verified': (user.verified ?? false) ? 1 : 0
-            },
-            where: 'id = ?',
-            whereArgs: [user.idStr]);
-      }
-
-      await batch.commit();
-      await reloadSubscriptions();
-
-      return state;
-    });
+    for(final callback in onSubscriptionsReloaded.values) {
+      callback();
+    }
   }
 
   Future<void> _toggleSearchSubscribe(SearchSubscription user, bool currentlyFollowed) async {
@@ -155,6 +129,19 @@ class SubscriptionsModel extends Store<List<Subscription>> {
     }
 
     await groupModel.reloadGroups();
+  }
+
+  Future<void> toggleInFeed(Subscription user, bool wasInFeed) async {
+    var database = await Repository.writable();
+    await execute(() async {
+      database.update(tableSubscription, {
+        'in_Feed': wasInFeed ? 0 : 1
+      }, where: 'id = ?', whereArgs: [user.id]);
+
+      await reloadSubscriptions();
+
+      return state;
+    });
   }
 
   Future<void> changeOrderSubscriptionsBy(String? value) async {
